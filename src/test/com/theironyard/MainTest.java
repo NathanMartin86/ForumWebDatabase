@@ -16,12 +16,14 @@ public class MainTest {
         return conn;
 
     }
+
     public void endConnection(Connection conn) throws SQLException{
         java.sql.Statement stmt = conn.createStatement();
         stmt.execute("DROP TABLE users");
         stmt.execute("DROP TABLE messages");
         conn.close();
     }
+
     @Test
     public void testUser() throws SQLException {
         Connection conn = startConnection();
@@ -31,4 +33,17 @@ public class MainTest {
 
         assertTrue(user != null);
     }
+
+    @Test
+    public void testMessage() throws SQLException {
+        Connection conn = startConnection();
+        Main.insertUser(conn,"Alice","");
+        Main.insertMessage(conn,1,-1,"Hello World");
+        Message message = Main.selectMessage(conn,1);
+        endConnection(conn);
+
+        assertTrue(message != null);
+    }
+
+
 }
