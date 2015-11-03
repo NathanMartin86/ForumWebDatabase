@@ -1,3 +1,9 @@
 2015-11-03 11:18:51 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "SELECT * FROM USERS WHERE NAME ?[*] "; SQL statement:
 SELECT * FROM users WHERE name ? [42000-190]
+2015-11-03 11:56:16 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "MESSGAES" not found; SQL statement:
+SELECT * FROM messgaes INNER JOIN ON users on messages.user_id = users.id WHERE messages.reply_id = ? [42102-190]
+2015-11-03 11:57:53 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "SELECT * FROM MESSAGES INNER JOIN ON[*] USERS ON MESSAGES.USER_ID = USERS.ID WHERE MESSAGES.REPLY_ID = ? "; expected "identifier"; SQL statement:
+SELECT * FROM messages INNER JOIN ON users on messages.user_id = users.id WHERE messages.reply_id = ? [42001-190]
