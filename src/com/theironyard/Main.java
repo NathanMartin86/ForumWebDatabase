@@ -79,24 +79,13 @@ public class Main {
     public static void main(String[] args) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:h2:./main");
         createTables(conn);
-	    HashMap<String, User> users = new HashMap();
-        ArrayList<Message> messages = new ArrayList();
-
-        addTestUsers(users);
-        addTestMessages(messages);
-
         Spark.get(
                 "/",
                 ((request, response) -> {
                     Session session = request.session();
                     String username = session.attribute("username");
 
-                    ArrayList<Message> threads = new ArrayList();
-                    for (Message message : messages) {
-                        if (message.replyId == -1) {
-                            threads.add(message);
-                        }
-                    }
+                    ArrayList<Message> threads = selectReplies(conn, -1);
 
                     HashMap m = new HashMap();
                     m.put("threads", threads);
@@ -118,16 +107,13 @@ public class Main {
                     String id = request.queryParams("id");
                     try {
                         int idNum = Integer.valueOf(id);
-                        Message message = messages.get(idNum);
+                        Message message = selectMessage(conn,idNum);
                         m.put("message", message);
                         m.put("replyId", message.id);
 
-                        ArrayList<Message> replies = new ArrayList();
-                        for (Message msg : messages) {
-                            if (msg.replyId == message.id) {
-                                replies.add(msg);
-                            }
-                        }
+                        ArrayList<Message> replies = selectReplies(conn, message.id);
+
+
                         m.put("replies", replies);
                     } catch (Exception e) {
 
@@ -147,11 +133,9 @@ public class Main {
                         Spark.halt(403);
                     }
 
-                    User user = users.get(username);
+                    User user = selectUser(conn,username);
                     if (user == null) {
-                        user = new User();
-                        user.password = password;
-                        users.put(username, user);
+                        insertUser(conn, username,password);
                     }
                     else if (!password.equals(user.password)) {
                         Spark.halt(403);
@@ -178,8 +162,8 @@ public class Main {
                     String text = request.queryParams("text");
                     try {
                         int replyIdNum = Integer.valueOf(replyId);
-                        Message message = new Message(messages.size(), replyIdNum, username, text);
-                        messages.add(message);
+                        User me = selectUser(conn,username);
+                        insertMessage(conn,me.id, replyIdNum,text);
                     } catch (Exception e) {
 
                     }
@@ -188,18 +172,5 @@ public class Main {
                     return "";
                 })
         );
-    }
-
-    static void addTestUsers(HashMap<String, User> users) {
-        users.put("Alice", new User());
-        users.put("Bob", new User());
-        users.put("Charlie", new User());
-    }
-
-    static void addTestMessages(ArrayList<Message> messages) {
-        messages.add(new Message(0, -1, "Alice", "This is a thread!"));
-        messages.add(new Message(1, -1, "Bob", "This is a thread!"));
-        messages.add(new Message(2, 0, "Charlie", "Cool thread, Alice."));
-        messages.add(new Message(3, 2, "Alice", "Thanks"));
     }
 }
